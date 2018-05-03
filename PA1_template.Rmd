@@ -8,18 +8,91 @@ output:
 
 ## Loading and preprocessing the data
 
-
+```{r}
+activity <- read.csv("~/Reproductible research/activity.csv")
+```
 
 ## What is mean total number of steps taken per day?
 
-
+```{r}
+#Sum daily steps
+daily_steps <- tapply(activity$steps,activity$date,sum, na.rm=TRUE)
+#Draw histogram
+hist(daily_steps, breaks = 20, main = "Total steps per day", xlab = "Number of steps", ylab = "Frequency")
+#Report mean and median
+mean1 <- mean(daily_steps)
+median1 <- median(daily_steps)
+```
+### Mean and median steps per day
+```{r}
+print(mean1)
+print(median1)
+```
 
 ## What is the average daily activity pattern?
 
-
+```{r}
+#Average steps by interval
+  interval_steps <- as.data.frame(cbind(tapply(activity$steps,activity$interval,mean, na.rm=TRUE),unique(activity$interval)))
+  #Name columns
+  colnames(interval_steps) <- c("Steps","Interval")  
+  
+#Draw histogram
+  plot(interval_steps$Interval, interval_steps$Steps, type = "l", main = "Average steps througout day", xlab = "Time", ylab = "Steps")
+#Find interval with most steps on average
+  interval_steps$Interval[match(max(interval_steps$Steps),interval_steps$Steps)]
+```
 
 ## Imputing missing values
 
+### Missing variables are replaced by the average for that interval, based on the calculations of the previous question
+```{r}
+activity$steps <- ifelse(is.na(activity$steps),interval_steps$Steps[match(activity$interval,interval_steps$Interval)],activity$steps)
+```
 
+##Histogram of daily steps
+```{r}
+#Sum daily steps
+daily_steps <- tapply(activity$steps,activity$date,sum, na.rm=TRUE)
+#Draw histogram
+hist(daily_steps, breaks = 20, main = "Total steps per day", xlab = "Number of steps", ylab = "Frequency")
+#Report mean and median
+mean2 <- mean(daily_steps)
+median2 <- median(daily_steps)
+```
+## Mean and median steps with filled data
+```{r}
+  mean2
+  median2
+```
+## Difference with filled data
+```{r}
+mean2-mean1
+median2-median1
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+### Create weekday variable
+```{r}
+activity$weekday <- ifelse(weekdays(as.Date(activity$date))=="Saturday"|weekdays(as.Date(activity$date))=="Sunday","Weekend","Weekday")
+```
+
+```{r}
+#Average steps by interval
+  weekday_interval_steps <- as.data.frame(cbind(tapply(activity$steps[activity$weekday=="Weekday"],activity$interval[activity$weekday=="Weekday"],mean, na.rm=TRUE),unique(activity$interval[activity$weekday=="Weekday"])))
+  #Name columns
+  colnames(weekday_interval_steps) <- c("Steps","Interval")  
+#Average steps by interval
+  weekend_interval_steps <- as.data.frame(cbind(tapply(activity$steps[activity$weekday=="Weekend"],activity$interval[activity$weekday=="Weekend"],mean, na.rm=TRUE),unique(activity$interval[activity$weekday=="Weekend"])))
+  #Name columns
+  colnames(weekend_interval_steps) <- c("Steps","Interval")
+  
+```    
+#Draw histogram
+```{r}
+#Weekday plot
+  plot(weekday_interval_steps$Interval, weekday_interval_steps$Steps, type = "l", main = "Average steps througout weekday", xlab = "Time", ylab = "Steps")
+#Weekend plot
+  plot(weekend_interval_steps$Interval, weekend_interval_steps$Steps, type = "l", main = "Average steps througout weekend", xlab = "Time", ylab = "Steps")
+``` 
